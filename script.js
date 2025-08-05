@@ -1,3 +1,9 @@
+
+
+import { createClient } from 'npm:@supabase/supabase-js@2'
+
+
+
 // Configuración de Supabase
 const supabaseUrl = 'https://iouclhdwsrnwpgisuptb.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvdWNsaGR3c3Jud3BnaXN1cHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzNDA1MzcsImV4cCI6MjA2OTkxNjUzN30.pSwYpr4YiqzBv2RLQbIqTPOzvO6kF52UQbMPoXSxCVc';

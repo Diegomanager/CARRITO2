@@ -1,0 +1,26 @@
+{
+  "name": "carrito2",
+  "version": "1.0.0",
+  "description": "Pagina e-commerce con supabase",
+  "main": "script.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Diegomanager/CARRITO2.git"
+  },
+  "keywords": [
+    "supabase",
+    "ecommerce"
+  ],
+  "author": "Diego Bazoalto",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Diegomanager/CARRITO2/issues"
+  },
+  "homepage": "https://github.com/Diegomanager/CARRITO2#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.53.0"
+  }
+}
