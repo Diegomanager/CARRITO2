@@ -2,90 +2,47 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
-
-
 // Configuración de Supabase
 const supabaseUrl = 'https://iouclhdwsrnwpgisuptb.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlvdWNsaGR3c3Jud3BnaXN1cHRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzNDA1MzcsImV4cCI6MjA2OTkxNjUzN30.pSwYpr4YiqzBv2RLQbIqTPOzvO6kF52UQbMPoXSxCVc';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Clases para manejar productos y carrito
-class Producto {
-  constructor(id, nombre, precio, stock, imagen_url) {
-    this.id = id;
-    this.nombre = nombre;
-    this.precio = precio;
-    this.stock = stock;
-    this.imagen_url = imagen_url;
-  }
+// Utilidad para obtener el carrito actual (puedes usar un user_id real si tienes auth)
+const CARRITO_ID = 'carrito_demo';
+
+async function getCarrito() {
+  const { data, error } = await supabase
+    .from('carritos')
+    .select('*')
+    .eq('id', CARRITO_ID)
+    .single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data ? data.productos : [];
 }
 
-class Carrito {
-  constructor() {
-    this.productos = [];
-  }
-
-  agregarProducto(producto, cantidad = 1) {
-    const productoExistente = this.productos.find(p => p.producto.id === producto.id);
-    
-    if (productoExistente) {
-      if (productoExistente.cantidad + cantidad > producto.stock) {
-        alert(`No hay suficiente stock de ${producto.nombre}`);
-        return false;
-      }
-      productoExistente.cantidad += cantidad;
-    } else {
-      if (cantidad > producto.stock) {
-        alert(`No hay suficiente stock de ${producto.nombre}`);
-        return false;
-      }
-      this.productos.push({ producto, cantidad });
-    }
-    
-    producto.stock -= cantidad;
-    return true;
-  }
-
-  calcularTotal() {
-    return this.productos.reduce((total, item) => total + (item.producto.precio * item.cantidad), 0);
-  }
-
-  vaciarCarrito() {
-    this.productos = [];
-  }
+async function setCarrito(productos) {
+  // UPSERT: inserta o actualiza el carrito
+  const { error } = await supabase
+    .from('carritos')
+    .upsert([{ id: CARRITO_ID, productos }]);
+  if (error) throw error;
 }
 
-const carrito = new Carrito();
-
-// Funciones principales
 async function cargarProductos() {
-  try {
-    const { data, error } = await supabase
-      .from('productos')
-      .select('*')
-      .order('nombre', { ascending: true });
-
-    if (error) throw error;
-    
-    return data.map(p => new Producto(
-      p.id,
-      p.nombre,
-      p.precio,
-      p.stock,
-      p.imagen_url
-    ));
-  } catch (error) {
-    console.error('Error al cargar productos:', error);
-    alert('Error al cargar los productos. Por favor recarga la página.');
-    return [];
-  }
+  const { data, error } = await supabase
+    .from('productos')
+    .select('*')
+    .order('nombre', { ascending: true });
+  if (error) throw error;
+  return data;
 }
 
-function renderizarProductos(productos) {
+function renderizarProductos(productos, carrito) {
   const container = document.querySelector('.cards-container');
   container.innerHTML = '';
-
   productos.forEach(producto => {
+    const enCarrito = carrito.find(p => p.id === producto.id);
+    const stockDisponible = producto.stock - (enCarrito ? enCarrito.cantidad : 0);
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
@@ -93,81 +50,91 @@ function renderizarProductos(productos) {
       <h3>${producto.nombre}</h3>
       <p>$${producto.precio.toFixed(2)}</p>
       <button class="btn-agregar" data-id="${producto.id}" 
-        ${producto.stock <= 0 ? 'disabled' : ''}>
-        ${producto.stock <= 0 ? 'Sin stock' : 'Añadir al carrito'}
+        ${stockDisponible <= 0 ? 'disabled' : ''}>
+        ${stockDisponible <= 0 ? 'Sin stock' : 'Añadir al carrito'}
       </button>
-      ${producto.stock <= 0 ? '' : `<small>Disponibles: ${producto.stock}</small>`}
+      ${stockDisponible <= 0 ? '' : `<small>Disponibles: ${stockDisponible}</small>`}
     `;
     container.appendChild(card);
   });
 
-  // Agregar eventos a los botones
   document.querySelectorAll('.btn-agregar').forEach(btn => {
     btn.addEventListener('click', async () => {
       const productId = btn.dataset.id;
-      const producto = productos.find(p => p.id === productId);
-      
-      if (producto && carrito.agregarProducto(producto)) {
-        actualizarCarrito();
-        // Actualizar el stock mostrado
-        const stockDisponible = producto.stock;
-        btn.disabled = stockDisponible <= 0;
-        if (btn.nextElementSibling) {
-          btn.nextElementSibling.textContent = stockDisponible > 0 ? 
-            `Disponibles: ${stockDisponible}` : '';
-        }
-      }
+      await agregarProductoAlCarrito(productId);
     });
   });
 }
 
-function actualizarCarrito() {
-  document.getElementById('total-carrito').textContent = 
-    `$${carrito.calcularTotal().toFixed(2)}`;
-}
+async function agregarProductoAlCarrito(productId) {
+  // Obtener productos y carrito actualizados
+  const [productos, carrito] = await Promise.all([cargarProductos(), getCarrito()]);
+  const producto = productos.find(p => p.id === productId);
+  if (!producto) return;
 
-async function finalizarCompra() {
-  if (carrito.productos.length === 0) {
-    alert('Tu carrito está vacío');
+  const enCarrito = carrito.find(p => p.id === productId);
+  const cantidadEnCarrito = enCarrito ? enCarrito.cantidad : 0;
+  if (producto.stock - cantidadEnCarrito <= 0) {
+    alert(`No hay suficiente stock de ${producto.nombre}`);
     return;
   }
 
+  // Actualizar carrito en Supabase
+  let nuevoCarrito;
+  if (enCarrito) {
+    enCarrito.cantidad += 1;
+    nuevoCarrito = carrito;
+  } else {
+    nuevoCarrito = [...carrito, { id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1 }];
+  }
+  await setCarrito(nuevoCarrito);
+  actualizarCarrito(nuevoCarrito);
+  renderizarProductos(productos, nuevoCarrito);
+}
+
+function calcularTotal(carrito) {
+  return carrito.reduce((total, item) => total + (item.precio * item.cantidad), 0);
+}
+
+function actualizarCarrito(carrito) {
+  document.getElementById('total-carrito').textContent = 
+    `$${calcularTotal(carrito).toFixed(2)}`;
+}
+
+async function finalizarCompra() {
+  const carrito = await getCarrito();
+  if (carrito.length === 0) {
+    alert('Tu carrito está vacío');
+    return;
+  }
   try {
-    // Registrar la compra en Supabase
-    const { data, error } = await supabase
+    // Registrar la compra
+    const { error } = await supabase
       .from('compras')
       .insert([{
-        productos: carrito.productos,
-        total: carrito.calcularTotal(),
+        productos: carrito,
+        total: calcularTotal(carrito),
         fecha: new Date().toISOString()
       }]);
-
     if (error) throw error;
 
     // Actualizar stock en la base de datos
-    const updates = carrito.productos.map(item => 
-      supabase
+    const productos = await cargarProductos();
+    const updates = carrito.map(item => {
+      const producto = productos.find(p => p.id === item.id);
+      return supabase
         .from('productos')
-        .update({ stock: item.producto.stock })
-        .eq('id', item.producto.id)
-    );
-
+        .update({ stock: producto.stock - item.cantidad })
+        .eq('id', item.id);
+    });
     await Promise.all(updates);
 
-    // Mostrar resumen
-    let resumen = '¡Compra realizada con éxito!\n\n';
-    carrito.productos.forEach(item => {
-      resumen += `${item.producto.nombre} x${item.cantidad} - $${(item.producto.precio * item.cantidad).toFixed(2)}\n`;
-    });
-    resumen += `\nTotal: $${carrito.calcularTotal().toFixed(2)}`;
-    
-    alert(resumen);
-    carrito.vaciarCarrito();
-    actualizarCarrito();
-    
-    // Recargar productos para actualizar stocks
+    // Limpiar carrito
+    await setCarrito([]);
+    actualizarCarrito([]);
     const productosActualizados = await cargarProductos();
-    renderizarProductos(productosActualizados);
+    renderizarProductos(productosActualizados, []);
+    alert('¡Compra realizada con éxito!');
   } catch (error) {
     console.error('Error al procesar la compra:', error);
     alert('Ocurrió un error al procesar tu compra. Por favor intenta nuevamente.');
@@ -176,10 +143,8 @@ async function finalizarCompra() {
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', async () => {
-  // Configurar evento del carrito
   document.querySelector('.carrito').addEventListener('click', finalizarCompra);
-
-  // Cargar y mostrar productos
-  const productos = await cargarProductos();
-  renderizarProductos(productos);
+  const [productos, carrito] = await Promise.all([cargarProductos(), getCarrito()]);
+  renderizarProductos(productos, carrito);
+  actualizarCarrito(carrito);
 });
