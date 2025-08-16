@@ -30,7 +30,7 @@ header {
   transition: transform 0.2s ease, color 0.2s ease;
   padding: 8px 15px;
   border-radius: 20px;
-  background-color: #3498db;
+  background-color: #ca6f07;
 }
 
 .carrito:hover {

@@ -1,4 +1,4 @@
-import { createClient } from 'npm:@supabase/supabase-js@2'
+/*import { createClient } from 'npm:@supabase/supabase-js@2'
 
 // Configuración de Supabase
 const supabaseUrl = 'https://iouclhdwsrnwpgisuptb.supabase.co';
@@ -146,3 +146,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderizarProductos(productos, carrito);
   actualizarCarrito(carrito);
 });
+*/
