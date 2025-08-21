@@ -74,12 +74,7 @@ fetch(url, { headers })
         console.error('Error al obtener productos:', error);
 });
 
-// Generar productos dinámicamente
-const productos = [
-    new Producto('Producto 1', 100, 10, 'ruta/a/imagen1.jpg'),
-    new Producto('Producto 2', 200, 5, 'ruta/a/imagen2.jpg'),
-    new Producto('Producto 3', 150, 8, 'ruta/a/imagen3.jpg')
-];
+
 
 
 

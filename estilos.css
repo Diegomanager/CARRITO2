@@ -1,7 +1,10 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
+  background-color: #121212;
+  /* Fondo oscuro elegante */
+  color: #f8f9fa;
+  /* Texto claro por defecto */
 }
 
 header {
@@ -9,15 +12,18 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 15px 30px;
-  background-color: #2c3e50;
-  color: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  background-color: #FFD700;
+  /* Dorado */
+  color: #000;
+  /* Texto negro */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .logo {
   font-size: 24px;
   font-weight: bold;
-  color: #ecf0f1;
+  color: #000;
+  /* Negro */
 }
 
 .carrito {
@@ -26,15 +32,18 @@ header {
   gap: 10px;
   font-size: 20px;
   cursor: pointer;
-  color: white;
-  transition: transform 0.2s ease, color 0.2s ease;
+  color: #000;
+  /* Icono y texto negro */
   padding: 8px 15px;
   border-radius: 20px;
-  background-color: #ca6f07;
+  background-color: #FFD700;
+  /* Dorado */
+  transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .carrito:hover {
-  background-color: #2980b9;
+  background-color: #e6c200;
+  /* Dorado más oscuro */
   transform: scale(1.05);
 }
 
@@ -47,18 +56,21 @@ header {
 }
 
 .card {
-  background-color: white;
+  background-color: #FFD700;
+  /* Dorado */
   border-radius: 10px;
   padding: 20px;
-  width: 250px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  width: 18rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   text-align: center;
   transition: transform 0.3s ease;
+  color: #000;
+  /* Texto negro dentro de la card */
 }
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
 }
 
 .card img {
@@ -71,33 +83,39 @@ header {
 
 .card h3 {
   margin: 10px 0;
-  color: #2c3e50;
+  color: #000;
+  /* Negro */
 }
 
 .card p {
   margin: 10px 0 20px;
-  color: #e74c3c;
+  color: #000;
+  /* Negro */
   font-weight: bold;
   font-size: 18px;
 }
 
 .btn-agregar {
-  background-color: #2ecc71;
-  color: white;
+  background-color: #000;
+  /* Botón negro */
+  color: #FFD700;
+  /* Texto dorado */
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
   width: 100%;
 }
 
 .btn-agregar:hover {
-  background-color: #27ae60;
+  background-color: #333;
+  /* Negro más claro */
+  color: #FFD700;
 }
 
 .btn-agregar:disabled {
-  background-color: #95a5a6;
+  background-color: #6c757d;
   cursor: not-allowed;
 }
